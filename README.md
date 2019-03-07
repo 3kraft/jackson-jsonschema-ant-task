@@ -1,6 +1,6 @@
 # Ant task to generate JSON Schemas using Jackson
 
-Easily generate JSON Schemas from your Java classes with Apache Ant using the [Jackson](http://wiki.fasterxml.com/JacksonHome) library and extension modules.
+Easily generate JSON Schemas from your Java classes with Apache Ant using the [mbknor schema generator](https://github.com/mbknor/mbknor-jackson-jsonSchema) library and extension modules.
 
 ## Usage
 

@@ -7,10 +7,9 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
+import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 
 public class JsonSchemaTask extends Task {
 
@@ -23,7 +22,7 @@ public class JsonSchemaTask extends Task {
 		validateParameters();
 
 		final Class<?> clazz = getClazz();
-		final JsonSchema schema = generateJsonSchema(clazz);
+		final JsonNode schema = generateJsonSchema(clazz);
 
 		try {
 			objectMapper.writerWithDefaultPrettyPrinter().writeValue(getOutputFile(), schema);
@@ -33,17 +32,10 @@ public class JsonSchemaTask extends Task {
 		}
 	}
 
-	private JsonSchema generateJsonSchema(final Class<?> clazz) {
-		final SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
+	private JsonNode generateJsonSchema(final Class<?> clazz) {
+                
 		final JavaType javaType = objectMapper.constructType(clazz);
-
-		try {
-			objectMapper.acceptJsonFormatVisitor(javaType, visitor);
-		} catch (final JsonMappingException e) {
-			throw new BuildException("failed to generate JSON schema for " + clazz, e);
-		}
-
-		return visitor.finalSchema();
+                return new JsonSchemaGenerator(objectMapper).generateJsonSchema(javaType);
 	}
 
 	private Class<?> getClazz() {
