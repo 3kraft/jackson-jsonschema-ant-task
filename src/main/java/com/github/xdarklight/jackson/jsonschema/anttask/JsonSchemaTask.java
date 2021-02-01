@@ -9,6 +9,7 @@ import org.apache.tools.ant.Task;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 
 public class JsonSchemaTask extends Task {
@@ -16,6 +17,11 @@ public class JsonSchemaTask extends Task {
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private String classname;
 	private File destfile;
+
+	public JsonSchemaTask() {
+		objectMapper.findAndRegisterModules();
+                objectMapper.registerModule(new JavaTimeModule());
+	}
 
 	@Override
 	public void execute() throws BuildException {
