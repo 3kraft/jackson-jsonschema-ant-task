@@ -2,14 +2,23 @@ package com.github.xdarklight.jackson.jsonschema.anttask;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 
+import scala.collection.JavaConverters;
+
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kjetland.jackson.jsonSchema.JsonSchemaConfig;
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator;
 
 public class JsonSchemaTask extends Task {
@@ -20,7 +29,8 @@ public class JsonSchemaTask extends Task {
 
 	public JsonSchemaTask() {
 		objectMapper.findAndRegisterModules();
-                objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 	}
 
 	@Override
@@ -39,9 +49,23 @@ public class JsonSchemaTask extends Task {
 	}
 
 	private JsonNode generateJsonSchema(final Class<?> clazz) {
-                
+		Map<String, String> customType2FormatMapping = new HashMap<String, String>(JavaConverters.mapAsJavaMapConverter(JsonSchemaConfig.html5EnabledSchema().customType2FormatMapping()).asJava());
+		Set<Class<?>> uniqueItemClasses = JavaConverters.setAsJavaSet(JsonSchemaConfig.html5EnabledSchema().uniqueItemClasses());
+		customType2FormatMapping.put("java.util.Date", "date-time");
+		JsonSchemaConfig config = JsonSchemaConfig.create(
+			true,
+			Optional.<String>empty(),
+			true,
+			false,
+			false, true, false, true, false,
+			customType2FormatMapping,
+			true,
+			uniqueItemClasses,
+			Collections.EMPTY_MAP,
+			Collections.EMPTY_MAP
+		);
 		final JavaType javaType = objectMapper.constructType(clazz);
-                return new JsonSchemaGenerator(objectMapper).generateJsonSchema(javaType);
+		return new JsonSchemaGenerator(objectMapper, config).generateJsonSchema(javaType);
 	}
 
 	private Class<?> getClazz() {
@@ -60,14 +84,14 @@ public class JsonSchemaTask extends Task {
 		if (destfile.exists()) {
 			return destfile;
 		}
-		
+
 		if (!destfile.getParentFile().exists() && !destfile.getParentFile().mkdirs()) {
 			throw new BuildException("Failed to create parent directories for " + destfile);
 		}
 
 		return destfile;
 	}
-	
+
 	private void validateParameters() throws BuildException {
 		if (classname == null || classname.trim().isEmpty()) {
 			throw new BuildException("A non-empty 'classname' must be given");
