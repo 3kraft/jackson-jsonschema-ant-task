@@ -53,16 +53,23 @@ public class JsonSchemaTask extends Task {
 		Set<Class<?>> uniqueItemClasses = JavaConverters.setAsJavaSet(JsonSchemaConfig.html5EnabledSchema().uniqueItemClasses());
 		customType2FormatMapping.put("java.util.Date", "date-time");
 		JsonSchemaConfig config = JsonSchemaConfig.create(
-			true,
-			Optional.<String>empty(),
-			true,
-			false,
-			false, true, false, true, false,
-			customType2FormatMapping,
-			true,
-			uniqueItemClasses,
-			Collections.EMPTY_MAP,
-			Collections.EMPTY_MAP
+			true,  // autoGenerateTitleForProperties
+			Optional.<String>empty(),  // defaultArrayFormat
+			true, // useOneOfForOption
+			false, // useOneOfForNullables
+			true,  // usePropertyOrdering
+			true,  // hidePolymorphismTypeProperty
+			false, // disableWarnings
+			true,  // useMinLengthForNotNull
+			false, // useTypeIdForDefinitionName
+			customType2FormatMapping, // customType2FormatMapping
+			true, // useMultipleEditorSelectViaProperty
+			uniqueItemClasses, // uniqueItemClasses
+			Collections.emptyMap(), // classTypeReMapping
+			Collections.emptyMap(), // jsonSuppliers
+			null,						// subclassesResolver
+			true,						// failOnUnknownProperties
+			null						// javaxValidationGroups
 		);
 		final JavaType javaType = objectMapper.constructType(clazz);
 		return new JsonSchemaGenerator(objectMapper, config).generateJsonSchema(javaType);
